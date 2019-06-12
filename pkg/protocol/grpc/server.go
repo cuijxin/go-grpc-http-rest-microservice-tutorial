@@ -9,7 +9,7 @@ import (
 
     "google.golang.org/grpc"
 
-    "github.com/cuijxin/go-grpc-http-rest-microservice-tutorial/pkg/api/v1"
+    "go-rpc-demo/pkg/api/v1"
 )
 
 // RunServer runs gRPC service to publish ToDo service

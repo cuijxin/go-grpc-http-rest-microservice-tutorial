@@ -157,7 +157,7 @@ func (s *toDoServiceServer) Update(ctx context.Context, req *v1.UpdateRequest) (
     }
 
     // update ToDo
-    res, err := c.ExecContext(ctx, "UPDATE ToDO SET `Title`=?, `Description`=?, `Reminder`=? WHERE `ID`=?",
+    res, err := c.ExecContext(ctx, "UPDATE ToDo SET `Title`=?, `Description`=?, `Reminder`=? WHERE `ID`=?",
         req.ToDo.Title, req.ToDo.Description, reminder, req.ToDo.Id)
     if err != nil {
         return nil, status.Error(codes.Unknown, "failed to update ToDo-> "+err.Error())

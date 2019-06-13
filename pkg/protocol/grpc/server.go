@@ -1,43 +1,52 @@
 package grpc
 
 import (
-    "context"
-    "log"
-    "net"
-    "os"
-    "os/signal"
+	"context"
+	"net"
+	"os"
+	"os/signal"
 
-    "google.golang.org/grpc"
+	"google.golang.org/grpc"
 
-    "go-rpc-demo/pkg/api/v1"
+	v1 "go-rpc-demo/pkg/api/v1"
+	"go-rpc-demo/pkg/logger"
+	"go-rpc-demo/pkg/protocol/grpc/middleware"
 )
 
 // RunServer runs gRPC service to publish ToDo service
 func RunServer(ctx context.Context, v1API v1.ToDoServiceServer, port string) error {
-    listen, err := net.Listen("tcp", ":"+port)
-    if err != nil {
-        return err
-    }
+	listen, err := net.Listen("tcp", ":"+port)
+	if err != nil {
+		return err
+	}
 
-    // register service
-    server := grpc.NewServer()
-    v1.RegisterToDoServiceServer(server, v1API)
+	// gRPC server statup options
+	opts := []grpc.ServerOption{}
 
-    // graceful shutdown
-    c := make(chan os.Signal, 1)
-    signal.Notify(c, os.Interrupt)
-    go func() {
-        for range c {
-            // sig is a ^C, handle it
-            log.Println("shutting down gRPC server...")
+	// add middleware
+	opts = middleware.AddLogging(logger.Log, opts)
 
-            server.GracefulStop()
+	// register service
+	server := grpc.NewServer()
+	v1.RegisterToDoServiceServer(server, v1API)
 
-            <-ctx.Done()
-        }
-    }()
+	// graceful shutdown
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		for range c {
+			// sig is a ^C, handle it
+			// log.Println("shutting down gRPC server...")
+			logger.Log.Warn("shutting down gRPC server...")
 
-    // start gRPC server
-    log.Println("starting gRPC server...")
-    return server.Serve(listen)
+			server.GracefulStop()
+
+			<-ctx.Done()
+		}
+	}()
+
+	// start gRPC server
+	// log.Println("starting gRPC server...")
+	logger.Log.Info("starting gRPC server...")
+	return server.Serve(listen)
 }
